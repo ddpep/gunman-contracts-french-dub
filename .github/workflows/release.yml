@@ -1,0 +1,51 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish (v1.0.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve the tag
+        run: |
+          tag="${{ github.event.inputs.tag }}"
+          [ -z "$tag" ] && tag="${{ github.ref_name }}"
+          case "$tag" in
+            v[0-9]*) ;;
+            *) echo "tag invalide : '$tag' (attendu vX.Y.Z)" >&2; exit 1 ;;
+          esac
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+
+      - name: Build and verify the archive
+        run: python build_release.py
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/GunmanContracts-FR.zip
+          tag_name: ${{ env.TAG }}
+          name: ${{ env.TAG }}
+          body: |
+            Doublage français pour Gunman Contracts — Stand Alone.
+            Décompresse l'archive, puis lance `INSTALLER.bat`.
+
+            French dub for Gunman Contracts — Stand Alone.
+            Unzip, then run `INSTALLER.bat`.
+          fail_on_unmatched_files: true

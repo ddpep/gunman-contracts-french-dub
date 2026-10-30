@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+dist/
+
+# Outils / OS
+Thumbs.db
+desktop.ini
+.DS_Store
